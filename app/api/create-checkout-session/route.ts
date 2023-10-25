@@ -5,20 +5,6 @@ import { createOrRetrieveCustomer,manageSubscriptionStatusChange } from '@/utils
 import { getURL } from '@/utils/helpers';
 import { Database } from '@/types_db';
 
-const createSubscription = async (customerId, priceId) => {
-  const subscription = await stripe.subscriptions.create({
-    customer: customerId,
-    items: [{ price: priceId }],
-    expand: ['latest_invoice.payment_intent'],
-  });
-
-  const subscriptionId = subscription.id;
-  
-  console.log(`Subscription ID is ${subscriptionId}`);
-  
-  // Return or store subscriptionId as needed
-  return subscriptionId;
-}
 
 export async function POST(req: Request) {
   if (req.method === 'POST') {
