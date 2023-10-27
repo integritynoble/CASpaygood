@@ -28,7 +28,7 @@ const handleSignIn = async (email: string, password: string) => {
 };
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-    console.log('Received request body:', req.body);
+    console.log('Received request body:',  req.method, req.headers, req.body);
     if (req.method === 'POST') {
         try {
             const { email, password } = req.body;
