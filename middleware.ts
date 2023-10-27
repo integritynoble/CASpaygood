@@ -7,6 +7,8 @@ import type { Database } from '@/types_db'
 export async function middleware(req: NextRequest) {
   const res = NextResponse.next()
   const supabase = createMiddlewareClient<Database>({ req, res })
-  await supabase.auth.getSession()
+  console.log("Before getSession in middleware");
+  await supabase.auth.getSession();
+  console.log("After getSession in middleware");
   return res
 }
