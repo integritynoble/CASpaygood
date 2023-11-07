@@ -1,39 +1,34 @@
+// pages/api/signin.ts
 import { createClient } from '@supabase/supabase-js';
 import { NextApiRequest, NextApiResponse } from 'next';
-const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL as string,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY as string
-);
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-   // Set CORS headers for all responses
-  res.setHeader('Access-Control-Allow-Origin', '*'); // Adjust this to allow only certain origins
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+import { serialize } from 'cookie';
 
-  // If it's an OPTIONS request (CORS preflight), respond with 200
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
-  } 
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL as string,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY as string
+);
+
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
-    return res.status(405).end(); // Method Not Allowed
+    return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
-  const { email, password, code } = req.body;
+  const { email, password } = req.body;
 
-  // Handle email/password sign-in
-  if (email && password) {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email: email,
-      password: password
-      
-    })
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email,
+    password
+  });
 
-    if (error) {
-      return res.status(400).json({ error: error.message });
-    }
+  if (error) return res.status(400).json({ error: error.message });
 
-    return res.status(200).json({ user: data.user, session: data.session });
-  } 
+  // Set HttpOnly cookie
+  res.setHeader('Set-Cookie', serialize('jwt', data.session.access_token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production', // Use secure in production
+    path: '/',
+    sameSite: 'strict', // CSRF protection
+  }));
 
-  
+  return res.status(200).json({ user: data.user });
 }
